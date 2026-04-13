@@ -1,0 +1,53 @@
+diff -Naur mini-svg-0.03.9c/src/svg.ml mini-svg-0.03.9d/src/svg.ml
+--- mini-svg-0.03.9c/src/svg.ml	2026-04-12 17:55:01.936597928 +0200
++++ mini-svg-0.03.9d/src/svg.ml	2026-04-13 10:47:22.028755893 +0200
+@@ -558,6 +558,26 @@
+ end
+ 
+ 
++module Int = struct
++(* commands with ints *)
++
++let add_circle b ~cx ~cy ~r ?fill ?fill_opacity ?stroke ?stroke_width ?stroke_opacity ?id ?css ?style () =
++  let fill         = match fill         with None -> "" | Some v -> Printf.sprintf " fill=\"%s\"" v in
++  let fill_opacity = match fill_opacity with None -> "" | Some v -> Printf.sprintf " fill-opacity=\"%g\"" v in
++  let stroke       = match stroke       with None -> "" | Some v -> Printf.sprintf " stroke=\"%s\"" v in
++  let stroke_width = match stroke_width with None -> "" | Some v -> Printf.sprintf " stroke-width=\"%g\"" v in
++  let stroke_opacity = match stroke_opacity with None -> "" | Some v -> Printf.sprintf " stroke-opacity=\"%g\"" v in
++  let style  = match style  with None -> "" | Some v -> Printf.sprintf " style=\"%s\"" v in
++  let css    = match css    with None -> "" | Some v -> Printf.sprintf " class=\"%s\"" v in
++  let id     = match id     with None -> "" | Some v -> Printf.sprintf " id=\"%s\"" v in
++
++  Printf.kprintf (Buffer.add_string b) {|
++<circle cx="%d" cy="%d" r="%d"%s%s%s%s%s%s%s%s />|}
++  cx cy r id css fill fill_opacity stroke stroke_width stroke_opacity style
++;;
++
++end
++
+ module Float = struct
+ (* commands with floats *)
+ 
+diff -Naur mini-svg-0.03.9c/src/svg.mli mini-svg-0.03.9d/src/svg.mli
+--- mini-svg-0.03.9c/src/svg.mli	2025-03-25 17:15:14.000000000 +0100
++++ mini-svg-0.03.9d/src/svg.mli	2026-04-13 10:45:40.913758978 +0200
+@@ -120,6 +120,19 @@
+ 
+ 
+ 
++module Int : sig
++(** {3 Commands with Ints} *)
++
++val add_circle : svg -> cx:int -> cy:int -> r:int ->
++  ?fill:string ->
++  ?fill_opacity:float ->
++  ?stroke:string ->
++  ?stroke_width:float ->
++  ?stroke_opacity:float ->
++  ?id:id_name -> ?css:class_name -> ?style:css_style -> unit -> unit
++
++end
++
+ module Float : sig
+ (** {3 Commands with Floats} *)
+ 
