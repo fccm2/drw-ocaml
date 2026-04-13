@@ -1,0 +1,100 @@
+#load "svg.cma"
+let env = ref []
+let push_env prm =
+  env := prm :: !env
+let pop_env () =
+  match !env with
+  | prm :: _ -> prm
+  | [] -> ("void", [])
+let shift_env () =
+  match !env with
+  | prm :: env_ -> env := env_ ; prm
+  | [] -> assert false
+let rect_1 =
+  ("rect", [("x", 20); ("y", 20); ("w", 60); ("h", 30); ("f", 0x00f);])
+let move_rect prm (xp, yp) =
+  match prm with
+  | ("rect", [("x",x); ("y",y); ("w",w); ("h",h); ("f",f)]) ->
+    ("rect", [("x",x+xp); ("y",y+yp); ("w",w); ("h",h); ("f",f)])
+  | v -> (v)
+let split_on s =
+  let n = String.length s in
+  let rec aux d acc1 acc2 =
+    if d >= n then
+       let s = (String.concat "") (List.rev_map (String.make 1) acc1) in
+       let acc2 = (s::acc2) in (List.rev acc2)
+    else match String.get s d with
+    | ' ' ->
+       let s = (String.concat "") (List.rev_map (String.make 1) acc1) in
+       aux (d+1) ([]) (s::acc2)
+    | c ->
+       aux (d+1) (c::acc1) (acc2)
+  in
+  aux 0 [] []
+type rect = { x:int; y:int; w:int; h:int; f:int; }
+type instr =
+  | Rect of rect
+  | Void
+let instr_of_prm prm =
+  match prm with
+  | ("rect", [("x",x); ("y",y); ("w",w); ("h",h); ("f",f)]) ->
+      Rect({ x; y; w; h; f; })
+  | _ ->
+      Void
+let ret_svg instr () =
+  let svg = Svg.new_svg_document ~width:120 ~height:90 () in
+  begin
+    let rec aux instr =
+      match instr with
+      | instr :: next_instr ->
+          begin match instr with
+          | Rect rect -> let r = rect in
+              let f = Printf.sprintf "#%03x\n" r.f in
+              Svg.add_rect svg ~x:r.x ~y:r.y ~width:r.w ~height:r.h ~fill:f ();
+          | Void -> ()
+          end;
+          aux next_instr
+      | [] -> ()
+    in
+    aux instr
+  end;
+  Svg.finish_svg svg;
+  Svg.get_svg_document svg;
+;;
+let () =
+  let read = ref "" in
+  while !read <> "quit" do
+    read := read_line () ;
+    if !read <> "quit"
+    then begin
+      let ws = split_on !read in
+      List.iter (fun w -> Printf.printf " ('%s')" w) ws;
+      print_newline ();
+      begin match ws with
+      | "draw" :: draw_instruct ->
+          begin match draw_instruct with
+          | "a" :: "rectangle" :: [] ->
+              push_env rect_1;
+          | _ -> ()
+          end;
+      | "move" :: move_instruct ->
+          begin match move_instruct with
+          | "the" :: "rectangle" :: dir :: [] ->
+              let prm = shift_env () in
+              let dir = match dir with "left" -> (-10, 0) | "right" -> (10, 0)
+              | "top" -> (0, -10) | "bottom" -> (0, 10) | _ -> (0, 0)
+              in
+              let mod_prm = move_rect prm dir in
+              push_env mod_prm;
+          | _ -> ()
+          end;
+      | _ -> ()
+      end;
+      let prm = pop_env () in
+      let instr = instr_of_prm prm in
+      let svg_xml = ret_svg [instr] () in
+      let d = Sys.command (Printf.sprintf "echo '%s' | feh -" svg_xml) in
+      assert (d=0);
+    end
+  done;
+;;
