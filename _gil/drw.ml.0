@@ -1,0 +1,5 @@
+
+let () =
+  let svg_xml = "<svg></svg>" in
+  Sys.command (Printf.sprintf "echo '%s' | feh -" svg_xml);
+;;
