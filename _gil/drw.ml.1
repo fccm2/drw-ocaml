@@ -1,0 +1,12 @@
+#load "svg.cma"
+let ret_svg () =
+  let svg = Svg.new_svg_document ~width:120 ~height:90 () in
+  Svg.add_rect svg ~x:20 ~y:20 ~width:60 ~height:30 ~fill:"#00f" ();
+  Svg.finish_svg svg;
+  Svg.get_svg_document svg;
+;;
+let () =
+  let svg_xml = ret_svg () in
+  let d = Sys.command (Printf.sprintf "echo '%s' | feh -" svg_xml) in
+  assert (d=0);
+;;
