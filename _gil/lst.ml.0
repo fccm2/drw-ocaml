@@ -1,0 +1,8 @@
+let ass_repl v0 n0 ass0 =
+  let rec aux acc ass =
+    match ass with
+    | (v,n)::ass when v=v0 -> let ass = (v,n0)::ass in List.rev_append acc ass
+    | (vn)::ass -> aux (vn::acc) ass
+    | [] -> ass0
+  in
+  aux [] ass0
