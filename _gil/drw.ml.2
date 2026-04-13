@@ -1,0 +1,37 @@
+#load "svg.cma"
+let env = ref []
+let ret_svg () =
+  let svg = Svg.new_svg_document ~width:120 ~height:90 () in
+  Svg.add_rect svg ~x:20 ~y:20 ~width:60 ~height:30 ~fill:"#00f" ();
+  Svg.finish_svg svg;
+  Svg.get_svg_document svg;
+;;
+let split_on s =
+  let n = String.length s in
+  let rec aux d acc1 acc2 =
+    if d >= n then
+       let s = (String.concat "") (List.rev_map (String.make 1) acc1) in
+       let acc2 = (s::acc2) in (List.rev acc2)
+    else match String.get s d with
+    | ' ' ->
+       let s = (String.concat "") (List.rev_map (String.make 1) acc1) in
+       aux (d+1) ([]) (s::acc2)
+    | c ->
+       aux (d+1) (c::acc1) (acc2)
+  in
+  aux 0 [] []
+let () =
+  let svg_xml = ret_svg () in
+  let read = ref "" in
+  while !read <> "quit" do
+    read := read_line () ;
+    if !read <> "quit"
+    then begin
+      let ws = split_on !read in
+      List.iter (fun w -> Printf.printf " ('%s')" w) ws;
+      print_newline ();
+      let d = Sys.command (Printf.sprintf "echo '%s' | feh -" svg_xml) in
+      assert (d=0);
+    end
+  done;
+;;
