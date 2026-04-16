@@ -1,0 +1,5 @@
+the default visualizer is `feh`
+
+if you want to change, edit line :520 of `_drw/drw.ml`
+
+
