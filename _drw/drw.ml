@@ -276,6 +276,9 @@ let usage () =
   Printf.printf "save draw-01.svg\n%!";
   Printf.printf "\n%!";
 
+  Printf.printf "list files\n%!";
+  Printf.printf "\n%!";
+
   Printf.printf "shift left\n%!";
   Printf.printf "shift right\n%!";
   Printf.printf "\n%!";
@@ -305,6 +308,9 @@ let polite ws =
 
   | "name" :: "the" :: "rectangle" :: name :: [] ->
     "name" :: "the" :: "element" :: name :: []
+
+  | "load" :: svg_file :: [] ->
+    "reload" :: svg_file :: []
 
   | "move" :: "right" :: rem ->
      let item = prm_kind (pop_env ()) in
@@ -394,6 +400,13 @@ let () =
           let instrs = List.map instr_of_prm prms in
           let svg_xml = ret_svg instrs () in
           save_file svg_xml filename;
+      | "list" :: "files" :: [] ->
+          let files = Sys.readdir "." in
+          let files = Array.to_list files in
+          let files = List.filter (fun file -> Filename.check_suffix file ".svg") files in
+          List.iter (fun file ->
+            Printf.printf "~ %s\n%!" file;
+          ) files;
       | "print" :: [] ->
           let prms = get_env () in
           let instrs = List.map instr_of_prm prms in
